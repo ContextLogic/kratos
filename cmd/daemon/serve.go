@@ -66,6 +66,7 @@ func servePublic(d driver.Driver, wg *sync.WaitGroup, cmd *cobra.Command, args [
 	r.RegisterPublicRoutes(router)
 	n.Use(NewNegroniLoggerMiddleware(l, "public#"+c.SelfPublicURL().String()))
 	n.Use(sqa(cmd, d))
+	n.Use(r.PrometheusManager())
 
 	if tracer := d.Registry().Tracer(); tracer.IsLoaded() {
 		n.Use(tracer)
