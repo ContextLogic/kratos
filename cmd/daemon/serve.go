@@ -192,7 +192,9 @@ func sqa(cmd *cobra.Command, d driver.Driver) *metricsx.Service {
 
 func bgTasks(d driver.Driver, wg *sync.WaitGroup, cmd *cobra.Command, args []string) {
 	defer wg.Done()
-	if d.Configuration().CourierSMTPURL().Host == "localhost" {
+
+	// disable courier
+	if true {
 		return
 	}
 
