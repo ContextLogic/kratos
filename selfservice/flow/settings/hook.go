@@ -12,6 +12,8 @@ import (
 	"github.com/ory/kratos/identity"
 	"github.com/ory/kratos/selfservice/flow"
 	"github.com/ory/kratos/x"
+	"github.com/ory/kratos/schema"
+	"github.com/ory/x/sqlcon"
 )
 
 type (
@@ -138,6 +140,9 @@ func (e *HookExecutor) PostSettingsHook(w http.ResponseWriter, r *http.Request, 
 		if errors.Is(err, identity.ErrProtectedFieldModified) {
 			e.d.Logger().WithError(err).Debug("Modifying protected field requires re-authentication.")
 			return errors.WithStack(NewFlowNeedsReAuth())
+		}
+		if errors.Is(err, sqlcon.ErrUniqueViolation) {
+			return schema.NewDuplicateCredentialsError()
 		}
 		return err
 	}
