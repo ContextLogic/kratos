@@ -65,7 +65,7 @@ func (s *Strategy) decodeVerification(r *http.Request, decodeBody bool) (*comple
 			decoderx.MustHTTPRawJSONSchemaCompiler(
 				pkgerx.MustRead(pkger.Open("github.com/ory/kratos:/selfservice/strategy/link/.schema/email.schema.json")),
 			),
-			decoderx.HTTPDecoderSetValidatePayloads(false),
+			decoderx.HTTPDecoderSetValidatePayloads(true),
 			decoderx.HTTPDecoderJSONFollowsFormFormat()); err != nil {
 			return nil, err
 		}
@@ -90,7 +90,9 @@ func (s *Strategy) handleVerificationError(w http.ResponseWriter, r *http.Reques
 
 		config.Reset()
 		config.SetCSRF(s.d.GenerateCSRFToken(r))
-		config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		if body != nil {
+			config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		}
 	}
 
 	s.d.VerificationFlowErrorHandler().WriteFlowError(w, r, s.VerificationStrategyID(), f, err)
