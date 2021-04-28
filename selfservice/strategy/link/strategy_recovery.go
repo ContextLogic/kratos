@@ -476,7 +476,9 @@ func (s *Strategy) handleRecoveryError(w http.ResponseWriter, r *http.Request, r
 
 		config.Reset()
 		config.SetCSRF(s.d.GenerateCSRFToken(r))
-		config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		if body != nil {
+			config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		}
 	}
 
 	s.d.RecoveryFlowErrorHandler().WriteFlowError(w, r, s.RecoveryStrategyID(), req, err)
