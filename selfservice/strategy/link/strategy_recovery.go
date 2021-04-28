@@ -479,7 +479,6 @@ func (s *Strategy) handleRecoveryError(w http.ResponseWriter, r *http.Request, r
 		if body != nil {
 			config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
 		}
-
 	}
 
 	s.d.RecoveryFlowErrorHandler().WriteFlowError(w, r, s.RecoveryStrategyID(), req, err)

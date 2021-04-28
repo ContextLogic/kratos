@@ -24,6 +24,8 @@ type (
 
 		SetMessageStatus(context.Context, uuid.UUID, MessageStatus) error
 
+		SetMessageRetryTimes(context.Context, uuid.UUID, int) error
+
 		LatestQueuedMessage(ctx context.Context) (*Message, error)
 	}
 

@@ -26,8 +26,8 @@ func (p *Persister) NextMessages(ctx context.Context, limit uint8) ([]courier.Me
 	var m []courier.Message
 	if err := p.GetConnection(ctx).
 		Eager().
-		Where("status != ?", courier.MessageStatusSent).
-		Order("created_at ASC").Limit(int(limit)).All(&m); err != nil {
+		Where("status != ? AND retry_times <= 3", courier.MessageStatusSent).
+		Order("retry_times ASC, created_at ASC").Limit(int(limit)).All(&m); err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, errors.WithStack(courier.ErrQueueEmpty)
 		}
@@ -62,6 +62,23 @@ func (p *Persister) SetMessageStatus(ctx context.Context, id uuid.UUID, ms couri
 			"UPDATE %s SET status = ? WHERE id = ?",
 			corp.ContextualizeTableName(ctx, "courier_messages"),
 		), ms, id).ExecWithCount()
+	if err != nil {
+		return sqlcon.HandleError(err)
+	}
+
+	if count == 0 {
+		return errors.WithStack(sqlcon.ErrNoRows)
+	}
+
+	return nil
+}
+
+func (p *Persister) SetMessageRetryTimes(ctx context.Context, id uuid.UUID, number int) error {
+	count, err := p.GetConnection(ctx).RawQuery(
+		fmt.Sprintf(
+			"UPDATE %s SET retry_times = ? WHERE id = ?",
+			corp.ContextualizeTableName(ctx, "courier_messages"),
+		), number, id).ExecWithCount()
 	if err != nil {
 		return sqlcon.HandleError(err)
 	}

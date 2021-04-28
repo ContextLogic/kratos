@@ -146,6 +146,13 @@ func (m *Courier) watchMessages(ctx context.Context, errChan chan error) {
 							// WithField("email_to", msg.Recipient).
 							WithField("message_from", from).
 							Error("Unable to send email using SMTP connection.")
+						if err := m.d.CourierPersister().SetMessageRetryTimes(ctx, msg.ID, msg.RetryTimes+1); err != nil {
+							m.d.Logger().
+								WithError(err).
+								WithField("message_id", msg.ID).
+								Error(`Unable to update the message retry times`)
+							return err
+						}
 						continue
 					}
 
