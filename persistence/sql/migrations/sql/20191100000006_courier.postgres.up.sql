@@ -3,7 +3,6 @@ CREATE TABLE "courier_messages" (
 PRIMARY KEY("id"),
 "type" int NOT NULL,
 "status" int NOT NULL,
-"retry_times" int NOT NULL,
 "body" VARCHAR (255) NOT NULL,
 "subject" VARCHAR (255) NOT NULL,
 "recipient" VARCHAR (255) NOT NULL,
