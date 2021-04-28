@@ -139,6 +139,10 @@ migrations-render: .bin/cli
 migrations-render-replace: .bin/cli
 		cli dev pop migration render -r persistence/sql/migrations/templates persistence/sql/migrations/sql
 
+.PHONY: migrations-create
+migrations-create: .bin/cli
+		cli dev pop migration create -d=$dialect ./persistence/sql/migrations/templates $name
+
 .PHONY: migratest-refresh
 migratest-refresh:
 		cd persistence/sql/migratest; go test -tags sqlite,refresh -short .

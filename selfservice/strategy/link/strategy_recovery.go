@@ -476,7 +476,9 @@ func (s *Strategy) handleRecoveryError(w http.ResponseWriter, r *http.Request, r
 
 		config.Reset()
 		config.SetCSRF(s.d.GenerateCSRFToken(r))
-		config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		if body != nil {
+			config.SetField(form.Field{Name: "email", Type: "email", Required: true, Value: body.Body.Email})
+		}
 	}
 
 	s.d.RecoveryFlowErrorHandler().WriteFlowError(w, r, s.RecoveryStrategyID(), req, err)
@@ -490,7 +492,7 @@ func (s *Strategy) decodeRecovery(r *http.Request, decodeBody bool) (*completeSe
 			decoderx.MustHTTPRawJSONSchemaCompiler(
 				pkgerx.MustRead(pkger.Open("github.com/ory/kratos:/selfservice/strategy/link/.schema/email.schema.json")),
 			),
-			decoderx.HTTPDecoderSetValidatePayloads(false),
+			decoderx.HTTPDecoderSetValidatePayloads(true),
 			decoderx.HTTPDecoderJSONFollowsFormFormat()); err != nil {
 			return nil, err
 		}

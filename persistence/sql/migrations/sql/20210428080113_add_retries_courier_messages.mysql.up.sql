@@ -1,0 +1,1 @@
+ALTER TABLE `courier_messages` ADD COLUMN `retry_times` INTEGER NOT NULL DEFAULT 0;
