@@ -65,7 +65,7 @@ func (s *Strategy) decodeVerification(r *http.Request, decodeBody bool) (*comple
 			decoderx.MustHTTPRawJSONSchemaCompiler(
 				pkgerx.MustRead(pkger.Open("github.com/ory/kratos:/selfservice/strategy/link/.schema/email.schema.json")),
 			),
-			decoderx.HTTPDecoderSetValidatePayloads(false),
+			decoderx.HTTPDecoderSetValidatePayloads(true),
 			decoderx.HTTPDecoderJSONFollowsFormFormat()); err != nil {
 			return nil, err
 		}
