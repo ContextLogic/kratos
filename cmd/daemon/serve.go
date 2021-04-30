@@ -64,6 +64,7 @@ func servePublic(d driver.Driver, wg *sync.WaitGroup, cmd *cobra.Command, args [
 	n.UseHandler(r.CSRFHandler())
 
 	r.RegisterPublicRoutes(router)
+	r.PrometheusManager().RegisterRouter(router.Router)
 	n.Use(NewNegroniLoggerMiddleware(l, "public#"+c.SelfPublicURL().String()))
 	n.Use(sqa(cmd, d))
 	n.Use(r.PrometheusManager())
@@ -100,6 +101,7 @@ func serveAdmin(d driver.Driver, wg *sync.WaitGroup, cmd *cobra.Command, args []
 
 	router := x.NewRouterAdmin()
 	r.RegisterAdminRoutes(router)
+	r.PrometheusManager().RegisterRouter(router.Router)
 	n.Use(NewNegroniLoggerMiddleware(l, "admin#"+c.SelfAdminURL().String()))
 	n.Use(sqa(cmd, d))
 	n.Use(d.Registry().PrometheusManager())
