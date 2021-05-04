@@ -11,11 +11,9 @@ import (
 	"github.com/ory/x/sqlcon"
 	"github.com/ory/x/viperx"
 	"github.com/spf13/cobra"
-	"regexp"
 )
 
 var logger *logrusx.Logger
-var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 var runSQLCmd = &cobra.Command{
 	Use:   "run-sql",
@@ -35,6 +33,12 @@ var runSQLCmd = &cobra.Command{
 			return
 		}
 
+		var isDryRun = (len(args) == 0) || (len(args) > 0 && args[0] != "run")
+
+		if isDryRun {
+			fmt.Println("DRY-RUN mode")
+		}
+
 		fmt.Printf("Fetched queued messages: %d", len(messages))
 		fmt.Println()
 
@@ -45,6 +49,12 @@ var runSQLCmd = &cobra.Command{
 				fmt.Println("valid")
 			} else {
 				fmt.Print("invalid, marking as processed...")
+
+				if isDryRun {
+					fmt.Println("skipping in dry-run mode")
+					continue
+				}
+
 				q := "UPDATE courier_messages SET status = ? WHERE id = ?"
 				affectedCount, err := d.Registry().Persister().GetConnection(context.Background()).RawQuery(q, courier.MessageStatusSent, msg.ID).ExecWithCount()
 				if err != nil {
@@ -63,10 +73,13 @@ var runSQLCmd = &cobra.Command{
 }
 
 func isEmailValid(e string) bool {
-	if len(e) < 3 && len(e) > 254 {
+	err := ValidateFormat(e)
+	if err != nil {
 		return false
 	}
-	if !emailRegex.MatchString(e) {
+
+	err = ValidateHost(e)
+	if err != nil {
 		return false
 	}
 
