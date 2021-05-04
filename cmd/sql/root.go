@@ -3,10 +3,9 @@ package sql
 import (
 	"context"
 	"fmt"
+	"github.com/gobuffalo/pop/v5"
 	"github.com/ory/kratos/courier"
-	"github.com/ory/kratos/driver"
-	"github.com/ory/kratos/internal/clihelpers"
-	"github.com/ory/kratos/x"
+	"github.com/ory/kratos/driver/configuration"
 	"github.com/ory/x/logrusx"
 	"github.com/ory/x/sqlcon"
 	"github.com/ory/x/viperx"
@@ -20,13 +19,29 @@ var runSQLCmd = &cobra.Command{
 	Short: "Run SQL query",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger = viperx.InitializeConfig("kratos", "", logger)
-		x.WatchAndValidateViper(logger)
-		d := driver.MustNewDefaultDriver(logger, clihelpers.BuildVersion, clihelpers.BuildTime, clihelpers.BuildGitHash, false)
+
+		l := logrusx.New("ORY Kratos", "v0")
+		c := configuration.NewViperProvider(l, false)
+		pool, idlePool, connMaxLifetime, cleanedDSN := sqlcon.ParseConnectionOptions(l, c.DSN())
+		connection, err := pop.NewConnection(&pop.ConnectionDetails{
+			URL:             sqlcon.FinalizeDSN(l, cleanedDSN),
+			IdlePool:        idlePool,
+			ConnMaxLifetime: connMaxLifetime,
+			Pool:            pool,
+		})
+
+		if err != nil {
+			l.WithError(err).Warnf("Unable to connect to database, retrying.")
+			panic(err)
+		}
+
+		connection.Open()
+		connection = connection.WithContext(context.Background())
 
 		// retrieve all queued messages
 		var messages []courier.Message
 		q := "SELECT * FROM courier_messages WHERE status = ?"
-		err := d.Registry().Persister().GetConnection(context.Background()).RawQuery(q, courier.MessageStatusQueued).All(&messages)
+		err = connection.RawQuery(q, courier.MessageStatusQueued).All(&messages)
 
 		if err != nil {
 			fmt.Println(sqlcon.HandleError(err).Error())
@@ -56,7 +71,7 @@ var runSQLCmd = &cobra.Command{
 				}
 
 				q := "UPDATE courier_messages SET status = ? WHERE id = ?"
-				affectedCount, err := d.Registry().Persister().GetConnection(context.Background()).RawQuery(q, courier.MessageStatusSent, msg.ID).ExecWithCount()
+				affectedCount, err := connection.RawQuery(q, courier.MessageStatusSent, msg.ID).ExecWithCount()
 				if err != nil {
 					fmt.Println(sqlcon.HandleError(err).Error())
 					return
