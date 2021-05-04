@@ -3,17 +3,9 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/ory/kratos/cmd/sql"
 	"os"
 
-	"github.com/ory/kratos/cmd/hashers"
-
-	"github.com/ory/kratos/cmd/remote"
-
-	"github.com/ory/kratos/cmd/identities"
-	"github.com/ory/kratos/cmd/jsonnet"
-	"github.com/ory/kratos/cmd/migrate"
-	"github.com/ory/kratos/cmd/serve"
-	"github.com/ory/kratos/internal/clihelpers"
 	"github.com/ory/x/cmdx"
 
 	"github.com/ory/x/viperx"
@@ -40,12 +32,5 @@ func Execute() {
 func init() {
 	viperx.RegisterConfigFlag(RootCmd, "kratos")
 
-	identities.RegisterCommandRecursive(RootCmd)
-	jsonnet.RegisterCommandRecursive(RootCmd)
-	serve.RegisterCommandRecursive(RootCmd)
-	migrate.RegisterCommandRecursive(RootCmd)
-	remote.RegisterCommandRecursive(RootCmd)
-	hashers.RegisterCommandRecursive(RootCmd)
-
-	RootCmd.AddCommand(cmdx.Version(&clihelpers.BuildVersion, &clihelpers.BuildGitHash, &clihelpers.BuildTime))
+	sql.RegisterCommandRecursive(RootCmd)
 }

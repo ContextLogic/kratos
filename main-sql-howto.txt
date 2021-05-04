@@ -1,0 +1,1 @@
+go build ./main-sql.go && ./main-sql run-sql -c config.yaml
